@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Subasta Roblox</title>
+<style>
+body{
+  background:#0f0f0f;
+  color:white;
+  font-family:Arial, sans-serif;
+}
+.container{
+  width:360px;
+  background:#1c1c1c;
+  padding:15px;
+  border-radius:12px;
+}
+h2{text-align:center;}
+.top{
+  background:#2a2a2a;
+  padding:8px;
+  border-radius:8px;
+  margin-bottom:6px;
+}
+.gold{color:gold;}
+.silver{color:silver;}
+.bronze{color:#cd7f32;}
+button{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  cursor:pointer;
+}
+.start{background:#2196f3;color:white;}
+.add{background:#4caf50;color:white;}
+.reset{background:#e53935;color:white;}
+.timer{
+  text-align:center;
+  font-size:22px;
+  margin:10px 0;
+}
+.delay{
+  color:#ff9800;
+  font-weight:bold;
+}
+.block{
+  opacity:0.5;
+  pointer-events:none;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h2>🏆 SUBASTA ROBLOX</h2>
+
+<div class="timer" id="timer">⏱️ 00:00</div>
+
+<div id="top1" class="top gold">🥇 Top 1: - (0)</div>
+<div id="top2" class="top silver">🥈 Top 2: - (0)</div>
+<div id="top3" class="top bronze">🥉 Top 3: - (0)</div>
+
+<button class="start" onclick="iniciar()">▶️ Iniciar subasta</button>
+<button class="add" id="btnAdd" onclick="agregar()">➕ Agregar donación</button>
+<button class="reset" onclick="reiniciar()">🔁 Reiniciar</button>
+</div>
+
+<script>
+let usuarios = {};
+let tiempo = 0;
+let delay = 0;
+let intervalo = null;
+let activa = false;
+let enDelay = false;
+
+function iniciar(){
+  if(activa) return;
+
+  let t = prompt("Tiempo principal (segundos):", "60");
+  if(!t || isNaN(t)) return;
+
+  let d = prompt("Tiempo de DELAY (segundos extra):", "10");
+  if(!d || isNaN(d)) return;
+
+  tiempo = parseInt(t);
+  delay = parseInt(d);
+  activa = true;
+  enDelay = false;
+
+  actualizarTimer();
+
+  intervalo = setInterval(()=>{
+    tiempo--;
+    actualizarTimer();
+
+    if(tiempo <= 0){
+      if(delay > 0){
+        tiempo = delay;
+        delay = 0;
+        enDelay = true;
+      } else {
+        finalizar();
+      }
+    }
+  },1000);
+}
+
+function actualizarTimer(){
+  let m = String(Math.floor(tiempo/60)).padStart(2,"0");
+  let s = String(tiempo%60).padStart(2,"0");
+  let texto = enDelay ? "⏱️ DELAY " : "⏱️ ";
+  document.getElementById("timer").innerHTML =
+    `<span class="${enDelay ? 'delay' : ''}">${texto}${m}:${s}</span>`;
+}
+
+function agregar(){
+  if(!activa) return;
+
+  let nombre = prompt("Nombre del usuario:");
+  if(!nombre) return;
+
+  let monedas = prompt("Monedas donadas:");
+  if(!monedas || isNaN(monedas)) return;
+
+  monedas = parseInt(monedas);
+  usuarios[nombre] = (usuarios[nombre] || 0) + monedas;
+  actualizarTop();
+}
+
+function actualizarTop(){
+  let orden = Object.entries(usuarios).sort((a,b)=>b[1]-a[1]);
+
+  document.getElementById("top1").innerText =
+    orden[0] ? `🥇 Top 1: ${orden[0][0]} (${orden[0][1]})` : "🥇 Top 1: - (0)";
+  document.getElementById("top2").innerText =
+    orden[1] ? `🥈 Top 2: ${orden[1][0]} (${orden[1][1]})` : "🥈 Top 2: - (0)";
+  document.getElementById("top3").innerText =
+    orden[2] ? `🥉 Top 3: ${orden[2][0]} (${orden[2][1]})` : "🥉 Top 3: - (0)";
+}
+
+function finalizar(){
+  clearInterval(intervalo);
+  activa = false;
+  document.getElementById("timer").innerText = "🏁 SUBASTA CERRADA";
+}
+
+function reiniciar(){
+  if(!confirm("¿Reiniciar subasta?")) return;
+  clearInterval(intervalo);
+  usuarios = {};
+  activa = false;
+  enDelay = false;
+  document.getElementById("timer").innerText = "⏱️ 00:00";
+  actualizarTop();
+}
+</script>
+</body>
+</html>
